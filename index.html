@@ -15,6 +15,10 @@
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <!-- ===== FIREBASE (BANCO DE DADOS ONLINE) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --primary: #3b82f6;
@@ -26,12 +30,7 @@
             --text: #1e293b;
             --muted: #64748b;
             --borda: #e2e8f0;
-            --sombra: rgba(0,0,0,0.08);
-            --grad1: #f0f4f8;
-            --grad2: #e8f0fe;
         }
-
-        /* ========== MODO NOTURNO ========== */
         body.escuro {
             --primary: #60a5fa;
             --success: #34d399;
@@ -42,15 +41,10 @@
             --text: #e2e8f0;
             --muted: #94a3b8;
             --borda: #334155;
-            --sombra: rgba(0,0,0,0.3);
-            --grad1: #0f172a;
-            --grad2: #1e293b;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-
         body {
-            background: linear-gradient(to bottom, var(--grad1) 0%, var(--grad2) 100%);
+            background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 100%);
             padding: 12px;
             max-width: 520px;
             margin: 0 auto;
@@ -58,105 +52,41 @@
             color: var(--text);
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .logo-cabecalho {
-            text-align: center;
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-        .logo-cabecalho img {
-            width: 220px;
-            height: auto;
-        }
-        .titulo-app {
-            text-align: center;
-            font-size: 1.45rem;
-            color: var(--text);
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        .botao-tema {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.6rem;
-            padding: 5px;
-            cursor: pointer;
-            z-index: 100;
-        }
-        .usuario-topo {
-            text-align: center;
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 15px;
-            font-size: 1.05rem;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--borda);
-        }
-
-        .tela-login, .tela-cadastro, .tela-app { display: none; }
-        .tela.ativa { display: block; }
-
-        h2 { font-size: 1.1rem; color: var(--text); margin-bottom: 12px; }
-        .card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 4px 12px var(--sombra);
-            margin-bottom: 16px;
-            border: 1px solid var(--borda);
             transition: background 0.3s ease;
         }
+        .logo-cabecalho { text-align: center; margin-top: 5px; margin-bottom: 5px; }
+        .logo-cabecalho img { width: 220px; height: auto; }
+        .titulo-app { text-align: center; font-size: 1.45rem; color: var(--text); margin-bottom: 10px; font-weight: 700; }
+        .botao-tema { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.6rem; padding: 5px; cursor: pointer; z-index: 100; }
+        .usuario-topo { text-align: center; color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 1.05rem; padding-bottom: 8px; border-bottom: 1px solid var(--borda); }
+        .sinc-topo { text-align: center; font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+        .tela-login, .tela-cadastro, .tela-app { display: none; }
+        .tela.ativa { display: block; }
+        h2 { font-size: 1.1rem; color: var(--text); margin-bottom: 12px; }
+        .card { background: var(--card); border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid var(--borda); transition: background 0.3s ease; }
         .input-group { margin-bottom: 12px; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-        .input-group input {
-            width: 100%; padding: 12px; font-size: 1rem;
-            border: 2px solid var(--borda);
-            border-radius: 10px; outline: none;
-            transition: border-color 0.2s, background 0.3s;
-            background: var(--bg); color: var(--text);
-            -webkit-appearance: none;
-        }
+        .input-group input { width: 100%; padding: 12px; font-size: 1rem; border: 2px solid var(--borda); border-radius: 10px; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); -webkit-appearance: none; }
         .input-group input:focus { border-color: var(--primary); }
         .btn-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-        button {
-            border: none; border-radius: 12px; padding: 14px 10px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            transition: transform 0.15s; flex: 1; min-width: 110px;
-            -webkit-appearance: none;
-        }
+        button { border: none; border-radius: 12px; padding: 14px 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.15s; flex: 1; min-width: 110px; -webkit-appearance: none; }
         button:active { transform: scale(0.97); }
-
         .btn-primario { background: var(--primary); color: white; }
         .btn-entrada { background: var(--success); color: white; }
         .btn-saida { background: var(--danger); color: white; }
         .btn-pdf { background: var(--primary); color: white; }
         .btn-limpar { background: rgba(239,68,68,0.15); color: var(--danger); }
         .btn-empresa { background: var(--bg); color: var(--text); border: 2px solid var(--borda); }
-        .btn-empresa.selecionada { background: rgba(245,158,11,0.15); color: #d97706; border-color: var(--warning); box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
+        .btn-empresa.selecionada { background: rgba(245,158,11,0.15); color: #d97706; border-color: var(--warning); }
         .btn-link { background: none; color: var(--primary); text-decoration: underline; padding: 8px; font-size: 0.9rem; }
-
-        textarea {
-            width: 100%; border: 2px solid var(--borda);
-            border-radius: 10px; padding: 12px;
-            font-size: 1rem; margin-bottom: 12px;
-            min-height: 70px; resize: vertical; outline: none;
-            background: var(--bg); color: var(--text);
-        }
+        textarea { width: 100%; border: 2px solid var(--borda); border-radius: 10px; padding: 12px; font-size: 1rem; margin-bottom: 12px; min-height: 70px; resize: vertical; outline: none; background: var(--bg); color: var(--text); }
         textarea:focus { border-color: var(--primary); }
         .status { padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.95rem; }
         .status.info { background: rgba(59,130,246,0.15); color: #2563eb; }
         .status.erro { background: rgba(239,68,68,0.15); color: #dc2626; }
         .status.sucesso { background: rgba(16,185,129,0.15); color: #059669; }
         .status.gps { background: rgba(245,158,11,0.15); color: #d97706; }
-        .registro {
-            border-left: 4px solid; padding: 12px; margin: 8px 0;
-            border-radius: 8px; background: var(--bg);
-        }
+        .registro { border-left: 4px solid; padding: 12px; margin: 8px 0; border-radius: 8px; background: var(--bg); }
         .registro.entrada { border-color: var(--success); }
         .registro.saida { border-color: var(--danger); }
         .empresa-tag { display: inline-block; background: rgba(96,165,250,0.15); color: var(--primary); font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; margin-bottom: 4px; }
@@ -164,19 +94,17 @@
         .data { font-weight: 600; color: var(--text); font-size: 0.9rem; }
         .obs { font-size: 0.9rem; color: var(--muted); margin-top: 6px; font-style: italic; }
         .vazio { text-align: center; color: var(--muted); padding: 25px; }
-        .sinc-info { font-size: 0.8rem; color: var(--muted); margin-top: 8px; text-align: right; }
     </style>
 </head>
 <body>
 
-    <!-- 🌙 BOTÃO DE TEMA -->
     <button class="botao-tema" id="botaoTema" onclick="alternarTema()">🌙</button>
 
-    <!-- LOGO NO TOPO DE TODAS AS TELAS -->
     <div class="logo-cabecalho">
         <img src="logo.png" alt="Funerária São Donato & Vita Serena">
     </div>
     <h1 class="titulo-app">📌 Ponto Eletrônico</h1>
+    <div class="sinc-topo" id="statusNuvem">☁️ Conectando...</div>
 
     <!-- TELA DE LOGIN -->
     <div id="telaLogin" class="tela tela-login ativa">
@@ -226,10 +154,9 @@
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL DO APLICATIVO -->
+    <!-- TELA PRINCIPAL -->
     <div id="telaApp" class="tela tela-app">
         <div class="usuario-topo" id="nomeUsuarioTopo">👤 Bem-vindo!</div>
-
         <div class="card">
             <h2>Registrar Ponto</h2>
             <div id="statusGPS" class="status gps">📍 Verificando localização...</div>
@@ -244,29 +171,39 @@
             <textarea id="observacao" placeholder="Observações (opcional)..."></textarea>
             <div id="status" class="status info">Pronto para registrar ✅</div>
         </div>
-
         <div class="card">
             <h2>Histórico de Registros</h2>
             <div class="btn-row">
                 <button class="btn-pdf" onclick="exportarPDF()">📄 Baixar PDF</button>
-                <button class="btn-limpar" onclick="limparRegistros()">🗑️ Limpar</button>
+                <button class="btn-limpar" onclick="limparRegistros()">🗑️ Limpar Meus</button>
             </div>
             <div id="listaRegistros" class="vazio">Nenhum registro encontrado.</div>
-            <div class="sinc-info">💾 Dados salvos no aparelho</div>
         </div>
-
         <div style="text-align:center; margin:20px 0;">
             <button class="btn-link" onclick="sair()">🚪 Sair da Conta</button>
         </div>
     </div>
 
     <script>
-        // ================== CONFIGURAÇÕES ==================
-        const CHAVE_USUARIO = 'ponto_usuario';
-        const CHAVE_REGISTROS = 'ponto_registros';
+        // ==================================================
+        // ✅ SUAS CHAVES JÁ ESTÃO AQUI! NÃO PRECISA ALTERAR!
+        // ==================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAPkwGpKJu7pMn3r2tVvnZ-JSxcPQRL4VU",
+            authDomain: "pontoeletronico-53847.firebaseapp.com",
+            projectId: "pontoeletronico-53847",
+            storageBucket: "pontoeletronico-53847.firebasestorage.app",
+            messagingSenderId: "540254199436",
+            appId: "1:540254199436:web:b8f651515753ccba7025a9"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Configurações
         const CHAVE_TEMA = 'ponto_tema_escuro';
         const RAIO_PERMITIDO_METROS = 500;
-
         let usuarioLogado = null;
         let empresaSelecionada = null;
         let coordenadasEmpresa = null;
@@ -275,23 +212,14 @@
         // ================== MODO NOTURNO ==================
         function aplicarTema(escuro) {
             const botao = document.getElementById('botaoTema');
-            if (escuro) {
-                document.body.classList.add('escuro');
-                botao.textContent = '☀️';
-            } else {
-                document.body.classList.remove('escuro');
-                botao.textContent = '🌙';
-            }
+            if (escuro) { document.body.classList.add('escuro'); botao.textContent = '☀️'; }
+            else { document.body.classList.remove('escuro'); botao.textContent = '🌙'; }
             localStorage.setItem(CHAVE_TEMA, escuro ? '1' : '0');
         }
-        function alternarTema() {
-            const estaEscuro = !document.body.classList.contains('escuro');
-            aplicarTema(estaEscuro);
-        }
-        // Carregar tema salvo ao abrir
+        function alternarTema() { aplicarTema(!document.body.classList.contains('escuro')); }
         window.addEventListener('load', () => {
-            const temaSalvo = localStorage.getItem(CHAVE_TEMA) === '1';
-            aplicarTema(temaSalvo);
+            aplicarTema(localStorage.getItem(CHAVE_TEMA) === '1');
+            document.getElementById('statusNuvem').textContent = '☁️ Conectado à nuvem ✅';
         });
 
         // ================== MÁSCARA DE DATA ==================
@@ -311,23 +239,20 @@
         // ================== CALCULAR DISTÂNCIA ==================
         function calcularDistancia(lat1, lon1, lat2, lon2) {
             const R = 6371000;
-            const toRad = graus => graus * Math.PI / 180;
-            const dLat = toRad(lat2 - lat1);
-            const dLon = toRad(lon2 - lon1);
+            const toRad = g => g * Math.PI / 180;
+            const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
             const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // ================== VERIFICAR GPS ==================
+        // ================== GPS ==================
         function verificarLocalizacao(callback) {
             const statusGPS = document.getElementById('statusGPS');
             if (!navigator.geolocation) {
-                statusGPS.textContent = '⚠️ GPS não suportado no aparelho';
+                statusGPS.textContent = '⚠️ GPS não suportado';
                 statusGPS.className = 'status erro';
-                callback(false);
-                return;
+                return callback(false);
             }
-
             navigator.geolocation.getCurrentPosition(
                 pos => {
                     coordenadasAtuais = { lat: pos.coords.latitude, lon: pos.coords.longitude };
@@ -336,50 +261,36 @@
                     callback(true);
                 },
                 erro => {
-                    statusGPS.textContent = '❌ Não foi possível obter localização — Ative o GPS!';
+                    statusGPS.textContent = '❌ Ative o GPS!';
                     statusGPS.className = 'status erro';
                     callback(false);
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         }
-
-        // ================== VALIDAR SE ESTÁ NA ÁREA ==================
         function estaNaAreaPermitida() {
-            if (!coordenadasAtuais || !coordenadasEmpresa) return { ok: false, distancia: null };
-            const dist = calcularDistancia(
-                coordenadasEmpresa.lat, coordenadasEmpresa.lon,
-                coordenadasAtuais.lat, coordenadasAtuais.lon
-            );
-            return { ok: dist <= RAIO_PERMITIDO_METROS, distancia: Math.round(dist) };
+            if (!coordenadasAtuais || !coordenadasEmpresa) return { ok: false, dist: null };
+            const d = calcularDistancia(coordenadasEmpresa.lat, coordenadasEmpresa.lon, coordenadasAtuais.lat, coordenadasAtuais.lon);
+            return { ok: d <= RAIO_PERMITIDO_METROS, dist: Math.round(d) };
         }
 
         // ================== SELECIONAR EMPRESA ==================
         function selecionarEmpresa(nome, lat, lon) {
             empresaSelecionada = nome;
             coordenadasEmpresa = { lat, lon };
-            const btnD = document.getElementById('btnSaoDonato');
-            const btnV = document.getElementById('btnVitaSerena');
-            if (nome === 'São Donato') {
-                btnD.classList.add('selecionada'); btnV.classList.remove('selecionada');
-            } else {
-                btnV.classList.add('selecionada'); btnD.classList.remove('selecionada');
-            }
+            const btnD = document.getElementById('btnSaoDonato'), btnV = document.getElementById('btnVitaSerena');
+            if (nome === 'São Donato') { btnD.classList.add('selecionada'); btnV.classList.remove('selecionada'); }
+            else { btnV.classList.add('selecionada'); btnD.classList.remove('selecionada'); }
             if (coordenadasAtuais) {
-                const res = estaNaAreaPermitida();
-                const statusGPS = document.getElementById('statusGPS');
-                if (res.ok) {
-                    statusGPS.textContent = `✅ Dentro da área permitida (${res.distancia}m)`;
-                    statusGPS.className = 'status sucesso';
-                } else {
-                    statusGPS.textContent = `❌ Fora da área — ${res.distancia}m de distância (máx: ${RAIO_PERMITIDO_METROS}m)`;
-                    statusGPS.className = 'status erro';
-                }
+                const r = estaNaAreaPermitida();
+                const s = document.getElementById('statusGPS');
+                s.textContent = r.ok ? `✅ Dentro da área (${r.dist}m)` : `❌ Fora da área — ${r.dist}m (máx ${RAIO_PERMITIDO_METROS}m)`;
+                s.className = r.ok ? 'status sucesso' : 'status erro';
             }
         }
 
-        // ================== CADASTRO ==================
-        function fazerCadastro() {
+        // ================== CADASTRAR FUNCIONÁRIO (NA NUVEM) ==================
+        async function fazerCadastro() {
             const nome = document.getElementById('cadNome').value.trim();
             const nascimento = document.getElementById('cadNascimento').value.trim();
             const senha = document.getElementById('cadSenha').value;
@@ -402,46 +313,70 @@
                 return;
             }
 
-            const usuario = { nome, nascimento, senha };
-            localStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario));
-            status.textContent = '✅ Cadastro realizado! Faça login.';
-            status.className = 'status sucesso';
-            setTimeout(() => mostrarTela('login'), 1500);
+            try {
+                const snap = await db.collection('funcionarios').where('nascimento', '==', nascimento).get();
+                if (!snap.empty) {
+                    status.textContent = '⚠️ Já existe um funcionário com esta data de nascimento!';
+                    status.className = 'status erro';
+                    return;
+                }
+
+                await db.collection('funcionarios').add({
+                    nome, nascimento, senha,
+                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                status.textContent = '✅ Cadastro realizado! Faça login.';
+                status.className = 'status sucesso';
+                setTimeout(() => mostrarTela('login'), 1500);
+            } catch (erro) {
+                status.textContent = '❌ Erro: ' + erro.message;
+                status.className = 'status erro';
+            }
         }
 
-        // ================== LOGIN ==================
-        function fazerLogin() {
+        // ================== LOGIN (BUSCA NA NUVEM) ==================
+        async function fazerLogin() {
             const nascimento = document.getElementById('loginNascimento').value.trim();
             const senha = document.getElementById('loginSenha').value;
             const status = document.getElementById('statusLogin');
 
-            const salvo = localStorage.getItem(CHAVE_USUARIO);
-            if (!salvo) {
-                status.textContent = '⚠️ Nenhum cadastro encontrado! Cadastre-se primeiro.';
+            if (!nascimento || !senha) {
+                status.textContent = '⚠️ Digite seus dados!';
                 status.className = 'status erro';
                 return;
             }
 
-            const usuario = JSON.parse(salvo);
-            if (usuario.nascimento !== nascimento || usuario.senha !== senha) {
-                status.textContent = '❌ Data ou senha incorretos!';
+            status.textContent = '🔄 Verificando na nuvem...';
+            status.className = 'status info';
+
+            try {
+                const snap = await db.collection('funcionarios')
+                    .where('nascimento', '==', nascimento)
+                    .where('senha', '==', senha)
+                    .limit(1).get();
+
+                if (snap.empty) {
+                    status.textContent = '❌ Data ou senha incorretos!';
+                    status.className = 'status erro';
+                    return;
+                }
+
+                const doc = snap.docs[0];
+                usuarioLogado = { id: doc.id, ...doc.data() };
+                status.textContent = '✅ Entrando...';
+                status.className = 'status sucesso';
+
+                setTimeout(() => {
+                    mostrarTela('app');
+                    document.getElementById('nomeUsuarioTopo').textContent = `👤 ${usuarioLogado.nome}`;
+                    selecionarEmpresa('São Donato', -28.7163, -49.3065);
+                    verificarLocalizacao(() => carregarRegistros());
+                }, 800);
+            } catch (erro) {
+                status.textContent = '❌ Erro: ' + erro.message;
                 status.className = 'status erro';
-                return;
             }
-
-            usuarioLogado = usuario;
-            status.textContent = '✅ Entrando...';
-            status.className = 'status sucesso';
-
-            setTimeout(() => {
-                mostrarTela('app');
-                document.getElementById('nomeUsuarioTopo').textContent = `👤 ${usuario.nome}`;
-                selecionarEmpresa('São Donato', -28.7163, -49.3065);
-                verificarLocalizacao(ok => {
-                    console.log('GPS verificado:', ok ? 'OK' : 'Sem GPS');
-                });
-                carregarRegistros();
-            }, 800);
         }
 
         // ================== SAIR ==================
@@ -453,137 +388,135 @@
             document.getElementById('loginSenha').value = '';
         }
 
-        // ================== FORMATAÇÃO DE DATA ==================
-        function formatarData(data = new Date()) {
-            return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full', timeStyle: 'medium' }).format(data);
+        // ================== FORMATAR DATA ==================
+        function formatarData(d = new Date()) {
+            return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full', timeStyle: 'medium' }).format(d);
         }
 
-        // ================== REGISTRAR PONTO ==================
-        function registrar(tipo) {
+        // ================== REGISTRAR PONTO (SALVA NA NUVEM) ==================
+        async function registrar(tipo) {
             const obs = document.getElementById('observacao').value.trim();
             const status = document.getElementById('status');
 
             if (!coordenadasAtuais) {
-                status.textContent = '❌ GPS não disponível. Ative a localização!';
+                status.textContent = '❌ Ative o GPS!';
                 status.className = 'status erro';
                 return;
             }
             if (!empresaSelecionada) {
-                status.textContent = '⚠️ Selecione a empresa primeiro!';
+                status.textContent = '⚠️ Selecione a empresa!';
                 status.className = 'status info';
                 return;
             }
 
             const local = estaNaAreaPermitida();
             if (!local.ok) {
-                status.textContent = `❌ Fora da área permitida! Você está a ${local.distancia}m de distância.`;
+                status.textContent = `❌ Fora da área! Você está a ${local.dist}m de distância.`;
                 status.className = 'status erro';
                 return;
             }
 
             const dataHora = formatarData();
-            status.textContent = `✅ ${tipo} registrada — ${empresaSelecionada} — ${dataHora}`;
-            status.className = 'status sucesso';
+            status.textContent = '🔄 Salvando na nuvem...';
+            status.className = 'status info';
 
-            const novo = {
-                nome: usuarioLogado.nome,
-                empresa: empresaSelecionada,
-                tipo,
-                data: dataHora,
-                obs,
-                distancia: local.distancia,
-                timestamp: Date.now()
-            };
+            try {
+                await db.collection('registros').add({
+                    funcionarioId: usuarioLogado.id,
+                    nome: usuarioLogado.nome,
+                    empresa: empresaSelecionada,
+                    tipo,
+                    data: dataHora,
+                    obs,
+                    distancia: local.dist,
+                    latitude: coordenadasAtuais.lat,
+                    longitude: coordenadasAtuais.lon,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-            const regs = JSON.parse(localStorage.getItem(CHAVE_REGISTROS) || '[]');
-            regs.unshift(novo);
-            localStorage.setItem(CHAVE_REGISTROS, JSON.stringify(regs));
-            renderizar(regs);
-            document.getElementById('observacao').value = '';
-        }
-
-        // ================== EXIBIR REGISTROS ==================
-        function renderizar(regs) {
-            const lista = document.getElementById('listaRegistros');
-            if (regs.length === 0) {
-                lista.innerHTML = 'Nenhum registro encontrado.';
-                lista.classList.add('vazio');
-                return;
+                status.textContent = `✅ ${tipo} registrada — ${empresaSelecionada}`;
+                status.className = 'status sucesso';
+                document.getElementById('observacao').value = '';
+                carregarRegistros();
+            } catch (erro) {
+                status.textContent = '❌ Erro ao salvar: ' + erro.message;
+                status.className = 'status erro';
             }
-            lista.classList.remove('vazio');
-            lista.innerHTML = regs.map((r, i) => `
-                <div class="registro ${r.tipo === 'Entrada' ? 'entrada' : 'saida'}">
-                    <div class="funcionario-tag">#${regs.length - i} — 👤 ${r.nome}</div>
-                    <span class="empresa-tag">🏢 ${r.empresa}</span>
-                    <div class="data">${r.tipo} — ${r.data}</div>
-                    <div style="font-size:0.8rem; color:var(--muted);">📍 Distância: ${r.distancia || '?'}m</div>
-                    ${r.obs ? `<div class="obs">📝 ${r.obs}</div>` : ''}
-                </div>
-            `).join('');
         }
 
-        function carregarRegistros() {
-            renderizar(JSON.parse(localStorage.getItem(CHAVE_REGISTROS) || '[]'));
-        }
+        // ================== CARREGAR REGISTROS (DA NUVEM) ==================
+        async function carregarRegistros() {
+            if (!usuarioLogado) return;
+            const lista = document.getElementById('listaRegistros');
+            try {
+                const snap = await db.collection('registros')
+                    .where('funcionarioId', '==', usuarioLogado.id)
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
 
-        function limparRegistros() {
-            if (confirm('Tem certeza? Isso apaga TODO o histórico!')) {
-                localStorage.removeItem(CHAVE_REGISTROS);
-                renderizar([]);
-                document.getElementById('status').textContent = '🗑️ Histórico limpo.';
-                document.getElementById('status').className = 'status info';
+                if (snap.empty) {
+                    lista.innerHTML = 'Nenhum registro encontrado.';
+                    lista.classList.add('vazio');
+                    return;
+                }
+
+                lista.classList.remove('vazio');
+                lista.innerHTML = snap.docs.map((doc, i) => {
+                    const r = doc.data();
+                    return `
+                        <div class="registro ${r.tipo === 'Entrada' ? 'entrada' : 'saida'}">
+                            <div class="funcionario-tag">#${i+1} — 👤 ${r.nome}</div>
+                            <span class="empresa-tag">🏢 ${r.empresa}</span>
+                            <div class="data">${r.tipo} — ${r.data}</div>
+                            <div style="font-size:0.8rem; color:var(--muted);">📍 Distância: ${r.distancia}m</div>
+                            ${r.obs ? `<div class="obs">📝 ${r.obs}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (erro) {
+                lista.innerHTML = `<div class="status erro">❌ Erro ao carregar: ${erro.message}</div>`;
             }
         }
 
         // ================== GERAR PDF ==================
-        function exportarPDF() {
-            const regs = JSON.parse(localStorage.getItem(CHAVE_REGISTROS) || '[]');
-            if (regs.length === 0) { alert('Nenhum registro para exportar!'); return; }
-            const nome = usuarioLogado?.nome || 'Relatório';
-            const dataArquivo = new Date().toLocaleDateString('pt-BR').replaceAll('/', '-');
-            const nomeArq = `ponto-${nome}-${dataArquivo}.pdf`;
+        async function exportarPDF() {
+            if (!usuarioLogado) return;
+            const snap = await db.collection('registros')
+                .where('funcionarioId', '==', usuarioLogado.id)
+                .orderBy('timestamp', 'desc').limit(100).get();
+
+            if (snap.empty) { alert('Nenhum registro!'); return; }
+
+            const regs = snap.docs.map(d => d.data());
+            const dataArq = new Date().toLocaleDateString('pt-BR').replaceAll('/', '-');
+            const nomeArq = `ponto-${usuarioLogado.nome}-${dataArq}.pdf`;
 
             const conteudo = document.createElement('div');
             conteudo.style.padding = '25px';
-            conteudo.style.fontFamily = 'Arial, sans-serif';
+            conteudo.style.fontFamily = 'Arial';
             conteudo.innerHTML = `
                 <div style="text-align:center; margin-bottom:20px;">
-                    <img src="logo.png" alt="Logo" style="width:180px; margin-bottom:10px;">
+                    <img src="logo.png" style="width:180px;">
                 </div>
-                <h1 style="text-align:center; color:#1e40af;">📌 RELATÓRIO DE PONTO ELETRÔNICO</h1>
+                <h1 style="text-align:center; color:#1e40af;">RELATÓRIO DE PONTO</h1>
                 <p style="text-align:center; color:#64748b;">São Donato & Vita Serena</p>
-                <hr style="border:1px solid #e2e8f0; margin:15px 0;">
-                <p style="text-align:right; font-size:12px;">Gerado em: ${formatarData()}</p>
-                <h3>👤 Funcionário: ${nome}</h3>
-                <hr style="border:1px dashed #cbd5e1; margin:10px 0;">
+                <hr style="margin:15px 0;">
+                <p>👤 Funcionário: ${usuarioLogado.nome}</p>
+                <p>📅 Gerado em: ${formatarData()}</p>
+                <hr>
                 ${regs.map((r, i) => `
-                    <div style="padding:10px 0; border-bottom:1px solid #e2e8f0;">
-                        <strong>${regs.length - i}.</strong> <strong>${r.tipo}</strong> — ${r.empresa}<br>
-                        📅 ${r.data} | 📍 Distância: ${r.distancia}m
-                        ${r.obs ? `<br>📝 Obs: ${r.obs}` : ''}
+                    <div style="padding:8px 0; border-bottom:1px solid #ddd;">
+                        <strong>${i+1}.</strong> ${r.tipo} — ${r.empresa}<br>
+                        📅 ${r.data} | 📍 ${r.distancia}m
+                        ${r.obs ? `<br>Obs: ${r.obs}` : ''}
                     </div>
                 `).join('')}
-                <hr style="margin-top:20px;">
-                <p style="text-align:right;">Total: ${regs.length} registro(s)</p>
+                <hr><p>Total: ${regs.length} registros</p>
             `;
 
             html2pdf().set({ filename: nomeArq, margin: 10, html2canvas: { scale: 2 } })
-                .from(conteudo).save().then(() => {
-                    document.getElementById('status').textContent = `✅ PDF baixado: ${nomeArq}`;
-                    document.getElementById('status').className = 'status sucesso';
-                });
-        }
-
-        // ================== INICIALIZAÇÃO ==================
-        window.addEventListener('load', () => {
-            const salvo = localStorage.getItem(CHAVE_USUARIO);
-            if (salvo) {
-                document.getElementById('statusLogin').textContent = '✅ Cadastro encontrado. Faça login.';
-            }
-        });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+                .from(conteudo).save();
         }
     </script>
 </body>
